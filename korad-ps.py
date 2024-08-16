@@ -4,6 +4,7 @@ import sys
 import glob
 import serial
 import pathlib
+import serial.tools.list_ports
 
 DEVICE_STRING = "KORAD KD3305P"
 CH1_MODE_MASK =             0b00000001
@@ -64,7 +65,7 @@ def print_usage():
     print(usage, end='', file=sys.stderr)
 
 def decode_status(input: bytes) -> str:
-    statusi = int.from_bytes(input[0:1])
+    statusi = int.from_bytes(input[0:1], byteorder="little")
     
     ret = "Tracking mode: "
     tracking = statusi & TRACKING_MODE_MASK
@@ -147,7 +148,12 @@ def detect_fhandle() -> str:
     except FileNotFoundError as ex:
         pass
     
-    candidates.extend(glob.glob("/dev/ttyACM*"))
+    for cport in serial.tools.list_ports.comports():
+        if hasattr(cport, "usb_device_path"):
+            if cport.usb_device_path is not None:
+                candidates.append(cport.device)
+        else:
+            candidates.append(cport.device)
 
     for candidate in candidates:
             try:
