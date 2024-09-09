@@ -52,8 +52,9 @@ def main():
                 print_usage()
                 sys.exit(2)        
             c += 1
-    except ValueError as ex:
-        print(ex, file=sys.stderr)
+    except (ValueError, IndexError) as ex:
+        print(f"ERROR: {ex}", file=sys.stderr)
+        print_usage()
         sys.exit(1)
 
 def print_usage():
