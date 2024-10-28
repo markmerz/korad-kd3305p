@@ -43,11 +43,14 @@ def main():
                 c += 1
                 command = sys.argv[c]
                 korad_command(fhandle, command)
+            elif sys.argv[c].upper().startswith("ST"):
+                c += 1
+                print(get_full_status(fhandle))
             elif sys.argv[c].upper().startswith("S"):
                 c += 2
                 command = sys.argv[c-1]
                 value = sys.argv[c]
-                korad_set(fhandle, command, value)
+                korad_set(fhandle, command, value)            
             else:
                 print_usage()
                 sys.exit(2)        
@@ -170,6 +173,61 @@ def detect_fhandle() -> str:
                 pass
     else:
         raise ValueError("Device handle was not found.")
+
+def get_full_status(fhandle: str) -> str:
+    ret = ""
+
+    status_raw = korad_query_raw(fhandle, "STATUS?")
+    statusi = int.from_bytes(status_raw[0:1], byteorder="little")
+
+    ret = "Tracking mode:\t\t"
+    tracking = statusi & TRACKING_MODE_MASK
+    if tracking == TRACKING_MODE_INDEPENDENT:
+        ret = ret + "independent\n"
+    elif tracking == TRACKING_MODE_SERIES:
+        ret = ret + "in series\n"
+    elif tracking == TRACKING_MODE_PARALLEL:
+        ret = ret + "in parallel\n"
+
+    ret += "\n"
+    
+    output = statusi & CH1_OUTPUT_MASK
+    if output == CH1_OUTPUT_OFF:
+        ret = ret + "CH 1: Output:\t\tOFF\n"
+    elif output == CH1_OUTPUT_ON:
+        ret = ret + "CH 1: Output:\t\tON\n"
+    channel_mode = statusi & CH1_MODE_MASK
+    if channel_mode == CH1_MODE_CV:
+        ret = ret + "CH 1: Mode:\t\tConstant Voltage\n"
+    elif channel_mode == CH1_MODE_CC:
+        ret = ret + "CH 1: Mode:\t\tConstant Current\n"
+    ret += f"CH 1: Voltage set:\t{korad_query(fhandle, "q vset1?")}\n"
+    ret += f"CH 1: Voltage measured:\t{korad_query(fhandle, "q vout1?")}\n"
+    ret += f"CH 1: Max current set:\t{korad_query(fhandle, "q iset1?")}\n"
+    ret += f"CH 1: Current measured:\t{korad_query(fhandle, "q iout1?")}\n"
+
+    ret += "\n"
+
+    output = statusi & CH2_OUTPUT_MASK
+    if output == CH2_OUTPUT_OFF:
+        ret = ret + "CH 2: Output:\t\tOFF\n"
+    elif output == CH2_OUTPUT_ON:
+        ret = ret + "CH 2: Output:\t\tON\n"
+    channel_mode = statusi & CH2_MODE_MASK
+    if channel_mode == CH2_MODE_CV:
+        ret = ret + "CH 2: Mode:\t\tConstant Voltage\n"
+    elif channel_mode == CH2_MODE_CC:
+        ret = ret + "CH 2: Mode:\t\tConstant Current\n"
+    ret += f"CH 2: Voltage set:\t{korad_query(fhandle, "q vset2?")}\n"
+    ret += f"CH 2: Voltage measured:\t{korad_query(fhandle, "q vout2?")}\n"
+    ret += f"CH 2: Max current set:\t{korad_query(fhandle, "q iset2?")}\n"
+    ret += f"CH 2: Current measured:\t{korad_query(fhandle, "q iout2?")}\n"
+
+    ret += "\n"
+
+    ret += f"CH 3: Voltage set:\t{korad_query(fhandle, "q vset3?")}"
+
+    return ret
 
 if __name__ == "__main__":
     main()
