@@ -63,8 +63,10 @@ def main():
 def print_usage():
     usage = f"Usage: {sys.argv[0]} query vset1?\n" +\
     f"Usage: {sys.argv[0]} q vset1? q iset1? \n" +\
+    f"Usage: {sys.argv[0]} q vout1? q iout1? \n" +\
     f"Usage: {sys.argv[0]} set vastep1 25,15,0.5,1 \n" +\
-    f"Usage: {sys.argv[0]} command lock1 \n"
+    f"Usage: {sys.argv[0]} command lock1 \n" +\
+    f"Usage: {sys.argv[0]} status \n"
 
     print(usage, end='', file=sys.stderr)
 
